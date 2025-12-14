@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Manifest.plist 生成工具</title>
+    <style>
+        :root {
+            --primary-color: #007aff;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #d1d1d6;
+            --error-color: #ff3b30;
+            --warning-bg: #fff3cd;
+            --warning-text: #856404;
+            --warning-border: #ffeeba;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover { background-color: #005bb5; }
+
+        .btn-secondary {
+            background-color: #e5e5ea;
+            color: #333;
+        }
+        .btn-secondary:hover { background-color: #d1d1d6; }
+
+        .output-area textarea {
+            width: 100%;
+            height: 350px;
+            padding: 15px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            border: none;
+            font-family: "Menlo", "Monaco", "Courier New", monospace;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .col { flex: 1; }
+
+        /* 教程区域样式 */
+        .tutorial-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+            border-radius: 8px;
+        }
+
+        .tutorial-section h3 {
+            margin-top: 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .tutorial-section ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+        
+        .tutorial-section li {
+            margin-bottom: 10px;
+        }
+
+        .code-box {
+            background-color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin-top: 5px;
+            color: #333;
+            user-select: text;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #d63031;
+        }
+
+        @media (max-width: 600px) {
+            .row { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>iOS Manifest.plist 生成工具</h1>
+
+    <!-- IPA URL Input -->
+    <div class="form-group">
+        <label for="ipaUrl">IPA 文件下载链接</label>
+        <input type="text" id="ipaUrl" placeholder="http://192.168.x.x/app.ipa 或 https://example.com/app.ipa" required>
+        <div class="hint">如果是内网环境，这里可以使用 http 协议；但外网正式分发建议使用 https。</div>
+    </div>
+
+    <!-- Title Input -->
+    <div class="form-group">
+        <label for="appTitle">App 名称 (Title)</label>
+        <input type="text" id="appTitle" placeholder="例如：企业办公OA">
+        <div class="hint">用户安装时弹窗提示的应用名称。</div>
+    </div>
+
+    <div class="row">
+        <!-- Bundle ID Input -->
+        <div class="col form-group">
+            <label for="bundleId">Bundle ID</label>
+            <input type="text" id="bundleId" placeholder="com.company.app">
+        </div>
+
+        <!-- Version Input -->
+        <div class="col form-group">
+            <label for="appVersion">版本号</label>
+            <input type="text" id="appVersion" placeholder="1.0.0">
+            <div class="hint">默认为 1.0.0</div>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-group">
+        <button class="btn-primary" onclick="generateManifest()">生成 plist 代码</button>
+        <button class="btn-secondary" onclick="copyToClipboard()">复制</button>
+        <button class="btn-secondary" onclick="downloadFile()">下载 .plist 文件</button>
+    </div>
+
+    <!-- Output -->
+    <div class="output-area">
+        <textarea id="result" readonly placeholder="点击上方“生成”按钮后在此处显示代码..."></textarea>
+    </div>
+
+    <!-- Tutorial Section -->
+    <div class="tutorial-section">
+        <h3>⚠️ 部署与安装指南（必读）</h3>
+        <ul>
+            <li>
+                <strong>1. plist 文件的存放位置：</strong>
+                <br>虽然 ipa 文件可以使用 http，但生成的 <code>manifest.plist</code> 文件上传到服务器后，其访问链接 <span class="highlight">必须是 HTTPS 协议</span>（这是 iOS 7.1+ 的强制要求）。
+            </li>
+            <li>
+                <strong>2. 安装链接格式：</strong>
+                <br>在您的下载页面中，安装按钮的链接需要写成如下格式（itms-services 协议）：
+                <div class="code-box">itms-services://?action=download-manifest&url=https://您的域名/manifest.plist</div>
+            </li>
+            <li>
+                <strong>3. 浏览器要求：</strong>
+                <br>上述链接必须使用 <span class="highlight">Safari 浏览器</span> 打开才能触发 iOS 的安装弹窗机制，微信或其他浏览器可能无法识别。
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function generateManifest() {
+        // 1. 获取输入值
+        const ipaUrlInput = document.getElementById('ipaUrl');
+        const titleInput = document.getElementById('appTitle');
+        const bundleIdInput = document.getElementById('bundleId');
+        const versionInput = document.getElementById('appVersion');
+        const resultArea = document.getElementById('result');
+
+        let ipaUrl = ipaUrlInput.value.trim();
+        let title = titleInput.value.trim();
+        let bundleId = bundleIdInput.value.trim();
+        let version = versionInput.value.trim();
+
+        // 2. 基础校验
+        if (!ipaUrl) {
+            alert("请输入 IPA 下载链接");
+            ipaUrlInput.focus();
+            return;
+        }
+        
+        // 移除了强制 HTTPS 校验，因为内网ipa可能是 http，但 plist 必须 https (在下方文字提示)
+
+        // 3. 处理默认值
+        if (!version) version = "1.0.0";
+        if (!bundleId) bundleId = "com.example.app";
+        if (!title) title = "App";
+
+        // 4. 生成 XML 内容
+        const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>assets</key>
+			<array>
+				<dict>
+					<key>kind</key>
+					<string>software-package</string>
+					<key>url</key>
+					<!-- ipa文件下载地址 -->
+					<string>${escapeXml(ipaUrl)}</string>
+				</dict>
+			</array>
+			<key>metadata</key>
+			<dict>
+				<key>bundle-identifier</key>
+				<!-- Bundle ID -->
+				<string>${escapeXml(bundleId)}</string>
+				<key>bundle-version</key>
+				<!-- 版本号 -->
+				<string>${escapeXml(version)}</string>
+				<key>kind</key>
+				<string>software</string>
+				<key>title</key>
+				<!-- 安装弹窗标题 -->
+				<string>${escapeXml(title)}</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>`;
+
+        // 5. 渲染结果
+        resultArea.value = xmlContent;
+    }
+
+    // XML 转义，防止 & < > " ' 破坏结构
+    function escapeXml(unsafe) {
+        return unsafe.replace(/[<>&'"]/g, function (c) {
+            switch (c) {
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '&': return '&amp;';
+                case '\'': return '&apos;';
+                case '"': return '&quot;';
+            }
+        });
+    }
+
+    function copyToClipboard() {
+        const resultArea = document.getElementById('result');
+        if (!resultArea.value) {
+            alert("请先生成内容");
+            return;
+        }
+        resultArea.select();
+        document.execCommand('copy');
+        alert("已复制 manifest.plist 内容");
+    }
+
+    function downloadFile() {
+        const content = document.getElementById('result').value;
+        if (!content) {
+            alert("请先生成内容");
+            return;
+        }
+        const blob = new Blob([content], { type: "text/xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "manifest.plist";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+</body>
+</html>
